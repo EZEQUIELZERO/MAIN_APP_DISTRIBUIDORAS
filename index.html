@@ -443,8 +443,15 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Registrar Cobro</div>
-    <div id="cobro-cliente-info" style="margin-bottom:12px;font-size:14px;color:var(--text2);"></div>
-    <div class="field"><label>Monto $</label><input type="number" id="cobro-monto" placeholder="0.00" step="0.01"></div>
+    <!-- Info cliente y saldo -->
+    <div id="cobro-cliente-info" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;"></div>
+    <!-- Resumen deuda si viene de pedido -->
+    <div id="cobro-pedido-info" style="display:none;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--text2);"></div>
+    <div class="field"><label>Monto que abona $</label>
+      <input type="number" id="cobro-monto" placeholder="0.00" step="0.01" oninput="actualizarSaldoRestante()">
+    </div>
+    <!-- Saldo restante dinámico -->
+    <div id="cobro-saldo-preview" style="display:none;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:14px;"></div>
     <div class="field"><label>Medio de pago</label></div>
     <div class="medio-grid">
       <div class="medio-btn selected" onclick="selMedio(this,'EFECTIVO')">💵 Efectivo</div>
@@ -454,7 +461,7 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
     <div class="field"><label>Notas</label><textarea id="cobro-notas" rows="2"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-cobro')">Cancelar</button>
-      <button class="btn btn-green" style="flex:2;" onclick="guardarCobro()">Registrar</button>
+      <button class="btn btn-green" style="flex:2;" onclick="guardarCobro()">Registrar cobro</button>
     </div>
   </div>
 </div>
@@ -889,7 +896,13 @@ function abrirDetallePedido(id){
   openModal('modal-detalle-pedido');
 }
 function siguientesAcciones(e){
-  const m={'TOMADO':[{label:'✅ Marcar armado',cls:'btn-primary',fn:"avanzarEstado('ARMADO')"}],'ARMADO':[{label:'🚚 En entrega',cls:'btn-primary',fn:"avanzarEstado('EN_ENTREGA')"}],'EN_ENTREGA':[{label:'📦 Entregado',cls:'btn-primary',fn:"avanzarEstado('ENTREGADO')"}],'ENTREGADO':[{label:'💰 Cobrar',cls:'btn-green',fn:"avanzarEstado('COBRADO')"}],'COBRADO':[]};
+  const m={
+    'TOMADO':[{label:'✅ Marcar armado',cls:'btn-primary',fn:"avanzarEstado('ARMADO')"}],
+    'ARMADO':[{label:'🚚 En entrega',cls:'btn-primary',fn:"avanzarEstado('EN_ENTREGA')"}],
+    'EN_ENTREGA':[{label:'📦 Entregado',cls:'btn-primary',fn:"avanzarEstado('ENTREGADO')"}],
+    'ENTREGADO':[{label:'💰 Cobrar pedido',cls:'btn-green',fn:"cobrarDesdePedido('"+activePedidoId+"')"}],
+    'COBRADO':[]
+  };
   return m[e]||[];
 }
 async function avanzarEstado(nuevo){
@@ -915,24 +928,106 @@ async function guardarVisita(){
 }
 
 // ── COBROS ────────────────────────────────────────────────────
+let cobroDeudaTotal=0;
+let cobroPedidoId='';
+
 function registrarCobro(){
-  cobroClienteId=activeFichaId;const c=DB.clientes.find(x=>x.ID===activeFichaId);
+  cobroClienteId=activeFichaId;
+  const c=DB.clientes.find(x=>x.ID===activeFichaId);
   const saldo=parseFloat(c?.SALDO_CTA_CTE||0);
-  document.getElementById('cobro-cliente-info').innerHTML=`<strong>${c?.NOMBRE_NEGOCIO}</strong> · Saldo: <span class="${saldo>0?'saldo-pos':'saldo-zero'}">$${saldo.toLocaleString('es-AR')}</span>`;
-  document.getElementById('cobro-monto').value=saldo>0?saldo:'';
-  closeModal('modal-ficha-cliente');openModal('modal-cobro');
+  cobroDeudaTotal=saldo;cobroPedidoId='';
+  _abrirModalCobro(c,saldo,'');
+  closeModal('modal-ficha-cliente');
 }
-function selMedio(el,m){document.querySelectorAll('.medio-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');medioCobroSelected=m;}
-async function guardarCobro(){
-  const monto=parseFloat(document.getElementById('cobro-monto').value||0);if(!monto){alert('Ingresá un monto');return;}
+
+function cobrarDesdePedido(pedidoId){
+  const p=DB.pedidos.find(x=>x.ID===pedidoId);if(!p)return;
+  cobroClienteId=p.ID_CLIENTE;cobroPedidoId=pedidoId;
+  const c=DB.clientes.find(x=>x.ID===p.ID_CLIENTE);
+  const saldo=parseFloat(c?.SALDO_CTA_CTE||0);
+  cobroDeudaTotal=parseFloat(p.TOTAL||0);
+  _abrirModalCobro(c,saldo,p);
+  closeModal('modal-detalle-pedido');
+}
+
+function _abrirModalCobro(c,saldo,pedido){
+  const saldoClass=saldo>0?'color:var(--red)':saldo<0?'color:var(--green)':'color:var(--text2)';
+  document.getElementById('cobro-cliente-info').innerHTML=`
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px;">${c?.NOMBRE_NEGOCIO||'–'}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:var(--text2);">Saldo actual en cta cte</span>
+      <span style="font-family:var(--mono);font-weight:700;${saldoClass};">$${saldo.toLocaleString('es-AR')}</span>
+    </div>`;
+  const pedInfo=document.getElementById('cobro-pedido-info');
+  if(pedido&&pedido.ID){
+    pedInfo.style.display='block';
+    pedInfo.innerHTML=`📦 Pedido ${pedido.NUMERO_REMITO} — Total: <strong style="color:var(--accent);font-family:var(--mono);">$${parseFloat(pedido.TOTAL||0).toLocaleString('es-AR')}</strong>`;
+    document.getElementById('cobro-monto').value=pedido.TOTAL;
+  }else{
+    pedInfo.style.display='none';
+    document.getElementById('cobro-monto').value=saldo>0?saldo.toFixed(2):'';
+  }
+  document.getElementById('cobro-notas').value='';
+  // reset medio
+  document.querySelectorAll('.medio-btn').forEach((b,i)=>{b.classList.toggle('selected',i===0);});
+  medioCobroSelected='EFECTIVO';
+  actualizarSaldoRestante();
+  openModal('modal-cobro');
+}
+
+function actualizarSaldoRestante(){
+  const monto=parseFloat(document.getElementById('cobro-monto').value||0);
   const c=DB.clientes.find(x=>x.ID===cobroClienteId);
-  const obj={ID:'CO'+Date.now(),ID_PEDIDO:'',ID_CLIENTE:cobroClienteId,NOMBRE_CLIENTE:c?.NOMBRE_NEGOCIO||'',
-    FECHA:today(),MONTO:monto.toString(),MEDIO_PAGO:medioCobroSelected,
-    NOTAS:document.getElementById('cobro-notas').value,USUARIO:currentUser.NOMBRE};
+  const saldoActual=parseFloat(c?.SALDO_CTA_CTE||0);
+  const preview=document.getElementById('cobro-saldo-preview');
+  if(!monto){preview.style.display='none';return;}
+  const nuevoSaldo=saldoActual-monto;
+  let html='';let bg='';
+  if(nuevoSaldo>0){
+    bg='background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.2);';
+    html=`<div style="display:flex;justify-content:space-between;"><span>Abona</span><span style="font-family:var(--mono);color:var(--green);">$${monto.toLocaleString('es-AR')}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-weight:700;">Queda debiendo</span><span style="font-family:var(--mono);color:var(--red);font-weight:700;font-size:16px;">$${nuevoSaldo.toLocaleString('es-AR')}</span></div>`;
+  }else if(nuevoSaldo<0){
+    bg='background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);';
+    html=`<div style="display:flex;justify-content:space-between;"><span>Abona</span><span style="font-family:var(--mono);color:var(--green);">$${monto.toLocaleString('es-AR')}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-weight:700;">Saldo a favor del cliente</span><span style="font-family:var(--mono);color:var(--green);font-weight:700;font-size:16px;">$${Math.abs(nuevoSaldo).toLocaleString('es-AR')}</span></div>`;
+  }else{
+    bg='background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);';
+    html=`<div style="text-align:center;font-weight:700;color:var(--accent);">✅ Pago completo — Sin saldo pendiente</div>`;
+  }
+  preview.style.cssText=`display:block;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:14px;${bg}`;
+  preview.innerHTML=html;
+}
+
+function selMedio(el,m){document.querySelectorAll('.medio-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');medioCobroSelected=m;}
+
+async function guardarCobro(){
+  const monto=parseFloat(document.getElementById('cobro-monto').value||0);
+  if(!monto||monto<=0){alert('Ingresá un monto válido');return;}
+  const c=DB.clientes.find(x=>x.ID===cobroClienteId);
+  const obj={ID:'CO'+Date.now(),ID_PEDIDO:cobroPedidoId,ID_CLIENTE:cobroClienteId,
+    NOMBRE_CLIENTE:c?.NOMBRE_NEGOCIO||'',FECHA:today(),MONTO:monto.toString(),
+    MEDIO_PAGO:medioCobroSelected,NOTAS:document.getElementById('cobro-notas').value,
+    USUARIO:currentUser.NOMBRE};
   DB.cobros.push(obj);await idbPut('cobros',obj);
-  if(c){c.SALDO_CTA_CTE=(parseFloat(c.SALDO_CTA_CTE||0)-monto).toString();await idbPut('clientes',c);}
+  // Actualizar saldo cliente
+  if(c){
+    const nuevoSaldo=(parseFloat(c.SALDO_CTA_CTE||0)-monto);
+    c.SALDO_CTA_CTE=nuevoSaldo.toString();
+    await idbPut('clientes',c);
+  }
+  // Marcar pedido como cobrado si viene de pedido
+  if(cobroPedidoId){
+    const p=DB.pedidos.find(x=>x.ID===cobroPedidoId);
+    if(p){p.ESTADO='COBRADO';p.FECHA_COBRO=today();await idbPut('pedidos',p);
+      if(gapi_token)await updatePedidoInSheet(p);}
+  }
   if(gapi_token)await pushRow('COBROS',['ID','ID_PEDIDO','ID_CLIENTE','NOMBRE_CLIENTE','FECHA','MONTO','MEDIO_PAGO','NOTAS','USUARIO'],obj);
-  closeModal('modal-cobro');renderDashboard();renderClientes();
+  closeModal('modal-cobro');renderDashboard();renderClientes();renderPedidos();
+  // Mostrar resumen
+  const nuevoSaldo=parseFloat(c?.SALDO_CTA_CTE||0);
+  const msg=nuevoSaldo>0?`Cobro registrado.\nQueda debiendo: $${nuevoSaldo.toLocaleString('es-AR')}`:`Cobro registrado.\n✅ Saldo saldado.`;
+  setTimeout(()=>alert(msg),200);
 }
 
 // ── USUARIOS ──────────────────────────────────────────────────
@@ -950,31 +1045,73 @@ async function guardarUsuario(){
 }
 
 // ── CSV IMPORT ────────────────────────────────────────────────
+function parsearCSV(texto){
+  // Maneja comas dentro de comillas
+  const lines=texto.split('\n').filter(l=>l.trim());
+  const parseLinea=line=>{
+    const vals=[];let cur='';let inQ=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){inQ=!inQ;}
+      else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}
+      else cur+=ch;
+    }
+    vals.push(cur.trim());
+    return vals;
+  };
+  const headers=parseLinea(lines[0]);
+  return lines.slice(1).map((line,ri)=>{
+    const vals=parseLinea(line);
+    const obj={};
+    headers.forEach((h,i)=>obj[h.trim()]=( vals[i]||'').trim());
+    return obj;
+  }).filter(o=>Object.values(o).some(v=>v));
+}
+
 function importCSV(event,tipo){
   const file=event.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=async e=>{
-    const lines=e.target.result.split('\n').filter(l=>l.trim());
-    const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
-    const rows=lines.slice(1).map((line,ri)=>{
-      const vals=line.split(',').map(v=>v.trim().replace(/"/g,''));
-      const obj={ID:'IMP'+Date.now()+ri};
-      headers.forEach((h,i)=>obj[h]=vals[i]||'');
-      if(obj.CODIGO)obj.ID=obj.CODIGO;
-      else if(obj.CODIGO_INTERNO)obj.ID=obj.CODIGO_INTERNO;
-      return obj;
-    }).filter(o=>Object.values(o).some(v=>v&&v!==o.ID));
+    const rows=parsearCSV(e.target.result);
     if(tipo==='clientes'){
-      rows.forEach(r=>{if(!r.SALDO_CTA_CTE)r.SALDO_CTA_CTE='0';if(!r.ACTIVO)r.ACTIVO='SI';if(!r.ES_CLIENTE)r.ES_CLIENTE='SI';if(!r.FECHA_ALTA)r.FECHA_ALTA=today();});
-      await idbPutAll('clientes',rows);DB.clientes=[...DB.clientes,...rows];
-      renderClientes();renderFiltroLocalidades();alert('✅ '+rows.length+' clientes importados');
+      const procesados=rows.map((r,ri)=>{
+        const id=r.ID||r.CODIGO||('C_IMP_'+ri);
+        return{ID:id,CODIGO:r.CODIGO||id,NOMBRE_NEGOCIO:r.NOMBRE_NEGOCIO||r.NOMBRE||'',
+          CONTACTO:r.CONTACTO||'',LOCALIDAD:r.LOCALIDAD||'',BARRIO:r.BARRIO||'',
+          DIRECCION:r.DIRECCION||'',TELEFONO:r.TELEFONO||'',CUIT:r.CUIT||'',
+          ES_CLIENTE:r.ES_CLIENTE||'SI',DIAS_VISITA:r.DIAS_VISITA||'',
+          PROXIMA_VISITA:r.PROXIMA_VISITA||'',SALDO_CTA_CTE:r.SALDO_CTA_CTE||'0',
+          NOTAS:r.NOTAS||'',USUARIO_REGISTRO:r.USUARIO_REGISTRO||'',
+          FECHA_ULTIMA_VISITA:r.FECHA_ULTIMA_VISITA||'',ULTIMA_ACCION:r.ULTIMA_ACCION||'',
+          FECHA_ALTA:r.FECHA_ALTA||today(),ACTIVO:r.ACTIVO||'SI'};
+      }).filter(r=>r.NOMBRE_NEGOCIO);
+      // Limpiar IndexedDB y reemplazar
+      const tx=idb.transaction('clientes','readwrite');
+      tx.objectStore('clientes').clear();
+      await new Promise(res=>tx.oncomplete=res);
+      await idbPutAll('clientes',procesados);
+      DB.clientes=procesados;
+      renderClientes();renderFiltroLocalidades();renderDashboard();
+      alert('✅ '+procesados.length+' clientes importados correctamente');
     }else if(tipo==='productos'){
-      rows.forEach(r=>{if(!r.ACTIVO)r.ACTIVO='SI';});
-      await idbPutAll('productos',rows);DB.productos=[...DB.productos,...rows];
-      alert('✅ '+rows.length+' productos importados');
+      const procesados=rows.map((r,ri)=>{
+        const id=r.ID||r.CODIGO_INTERNO||r.CODIGO_BARRAS||('P_IMP_'+ri);
+        const precio=parseFloat((r.PRECIO||'0').replace(',','.').replace(/[^\d.]/g,''))||0;
+        return{ID:id,CODIGO_INTERNO:r.CODIGO_INTERNO||id,CODIGO_BARRAS:r.CODIGO_BARRAS||'',
+          NOMBRE:r.NOMBRE||r.DESCRIPCION||'',DESCRIPCION:r.DESCRIPCION||r.PROVEEDOR||'',
+          UNIDAD:r.UNIDAD||'un',PRECIO:precio.toFixed(2),ACTIVO:r.ACTIVO||'SI'};
+      }).filter(r=>r.NOMBRE);
+      // Limpiar IndexedDB y reemplazar
+      const tx=idb.transaction('productos','readwrite');
+      tx.objectStore('productos').clear();
+      await new Promise(res=>tx.oncomplete=res);
+      await idbPutAll('productos',procesados);
+      DB.productos=procesados;
+      alert('✅ '+procesados.length+' productos cargados. Probá buscar uno en el carrito.');
     }
-    renderDashboard();event.target.value='';
-  };reader.readAsText(file);
+    event.target.value='';
+  };
+  reader.readAsText(file,'UTF-8');
 }
 
 // ── REMITO ────────────────────────────────────────────────────
@@ -1001,7 +1138,25 @@ function badgeEstado(e){const m={'TOMADO':['badge-tomado','🟡 Tomado'],'ARMADO
 (async()=>{
   await openIDB();await loadFromIDB();
   const saved=localStorage.getItem('distre_user');
-  if(saved){try{currentUser=JSON.parse(saved);initApp();}catch{localStorage.removeItem('distre_user');}}
+  if(saved){
+    try{
+      currentUser=JSON.parse(saved);
+      // Mostrar app
+      document.getElementById('screen-login').style.display='none';
+      document.getElementById('screen-app').style.display='flex';
+      document.getElementById('dash-user').textContent=currentUser.NOMBRE;
+      document.getElementById('cfg-username').textContent=currentUser.NOMBRE+' ('+currentUser.ROL+')';
+      document.getElementById('dash-fecha').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+      renderAll();
+      restaurarCarrito();
+      // Cargar APIs Google
+      await loadGapi();await loadGis();
+      const t=localStorage.getItem('distre_gtoken');
+      if(t){gapi_token=t;gapi.client.setToken({access_token:t});
+        document.getElementById('google-auth-status').innerHTML='<div style="color:var(--green);font-weight:600;margin-bottom:10px;">✅ Conectado</div><button class="btn btn-secondary btn-sm" onclick="syncAll()">Sincronizar ahora</button>';
+        syncAll();}
+    }catch(e){console.error(e);localStorage.removeItem('distre_user');}
+  }
 })();
 </script>
 </body>
