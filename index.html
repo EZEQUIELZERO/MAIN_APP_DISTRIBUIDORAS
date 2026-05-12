@@ -91,14 +91,21 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .pedido-footer{display:flex;align-items:center;justify-content:space-between}
 .pedido-total{font-size:17px;font-weight:700;color:var(--accent);font-family:var(--mono)}
 /* CART */
-.cart-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;margin-bottom:7px}
-.cart-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.cart-item-name{font-weight:600;font-size:14px;flex:1}
-.cart-item-controls{display:flex;align-items:center;gap:7px;margin-top:9px;flex-wrap:wrap}
-.qty-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.cart-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 13px;margin-bottom:8px;transition:border-color .15s}
+.cart-item:active{border-color:var(--accent)}
+.cart-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.cart-item-name{font-weight:700;font-size:15px;flex:1;line-height:1.3}
+.cart-item-precio{font-size:12px;color:var(--text2);margin-bottom:8px}
+.cart-item-row{display:flex;align-items:center;gap:8px}
+.qty-group{display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.qty-btn{width:36px;height:36px;border:none;background:transparent;color:var(--text);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .qty-btn:active{background:var(--border)}
-.qty-input{width:55px;text-align:center;padding:5px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:14px;font-weight:600}
-.desc-input{width:55px;text-align:center;padding:5px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--yellow);font-family:var(--mono);font-size:13px}
+.qty-input{width:50px;text-align:center;padding:4px 2px;background:transparent;border:none;border-left:1px solid var(--border);border-right:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:15px;font-weight:700;outline:none}
+.desc-group{display:flex;align-items:center;gap:5px}
+.desc-input{width:48px;text-align:center;padding:7px 5px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;color:var(--yellow);font-family:var(--mono);font-size:14px;font-weight:600;outline:none}
+.cart-item-subtotal{font-family:var(--mono);font-weight:700;color:var(--accent);font-size:16px;margin-left:auto}
+.cart-del-btn{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,23,68,.3);background:rgba(255,23,68,.08);color:var(--red);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.cart-del-btn:active{background:rgba(255,23,68,.2)}
 .cart-total-bar{position:sticky;bottom:0;background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .cart-total-num{font-size:22px;font-weight:700;color:var(--accent);font-family:var(--mono)}
 /* FICHA */
@@ -213,27 +220,36 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
   <!-- TAB: PEDIDO (CARRITO) -->
   <div id="tab-pedido" class="screen" style="height:auto;flex:1;overflow:hidden;flex-direction:column;">
     <div class="topbar">
-      <div class="topbar-title">Nuevo Pedido</div>
+      <div>
+        <div class="topbar-title">Nuevo Pedido</div>
+        <div id="carrito-cliente-sub" style="font-size:11px;color:var(--text2);"></div>
+      </div>
       <button class="btn btn-sm btn-secondary" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="openModal('modal-seleccionar-cliente');renderSelCliente()">
-        <span id="carrito-cliente-label">Seleccionar cliente</span>
+        <span id="carrito-cliente-label">👤 Cliente</span>
       </button>
     </div>
-    <div style="padding:12px 14px 0;flex-shrink:0;">
-      <div class="search-bar">
+    <!-- Buscador productos -->
+    <div style="padding:10px 14px 0;flex-shrink:0;">
+      <div class="search-bar" style="margin-bottom:6px;">
         <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="search" id="search-productos" placeholder="Buscar producto..." oninput="renderProductSearch()">
+        <input type="search" id="search-productos" placeholder="Buscar producto por nombre o código..." oninput="renderProductSearch()" autocomplete="off">
       </div>
       <div id="product-search-results"></div>
     </div>
-    <div class="content" id="carrito-items" style="padding-top:4px;">
+    <!-- Lista items carrito -->
+    <div class="content" style="padding-top:6px;">
       <div class="empty" id="carrito-empty">
         <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 6h13M10 19a1 1 0 100 2 1 1 0 000-2zm7 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
-        <p>Buscá un producto para agregar</p>
+        <p>Buscá un producto para agregar al carrito</p>
       </div>
+      <div id="carrito-lista"></div>
     </div>
     <div class="cart-total-bar" id="cart-bar" style="display:none;">
-      <div><div style="font-size:11px;color:var(--text2);">Total</div><div class="cart-total-num" id="cart-total">$0</div></div>
-      <button class="btn btn-primary" style="width:auto;" onclick="confirmarPedido()">Confirmar ›</button>
+      <div>
+        <div style="font-size:11px;color:var(--text2);">Total · <span id="cart-items-count" style="color:var(--accent);">0 items</span></div>
+        <div class="cart-total-num" id="cart-total">$0</div>
+      </div>
+      <button class="btn btn-primary" style="width:auto;padding:12px 20px;" onclick="confirmarPedido()">Confirmar pedido ›</button>
     </div>
   </div>
 
@@ -580,6 +596,7 @@ async function initApp(){
   document.getElementById('cfg-username').textContent=currentUser.NOMBRE+' ('+currentUser.ROL+')';
   document.getElementById('dash-fecha').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   await loadFromIDB();renderAll();
+  restaurarCarrito();
   await loadGapi();await loadGis();
   const t=localStorage.getItem('distre_gtoken');
   if(t){gapi_token=t;gapi.client.setToken({access_token:t});
@@ -710,11 +727,15 @@ function renderSelCliente(){
 function seleccionarClienteCarrito(id){
   carritoClienteId=id;const c=DB.clientes.find(x=>x.ID===id);
   document.getElementById('carrito-cliente-label').textContent=c?.NOMBRE_NEGOCIO||'Cliente';
+  document.getElementById('carrito-cliente-sub').textContent=c?([c.BARRIO,c.LOCALIDAD].filter(Boolean).join(' · ')):'';
+  persistirCarrito();
   closeModal('modal-seleccionar-cliente');
 }
 function irACarritoConCliente(){
   carritoClienteId=activeFichaId;const c=DB.clientes.find(x=>x.ID===activeFichaId);
   document.getElementById('carrito-cliente-label').textContent=c?.NOMBRE_NEGOCIO||'Cliente';
+  document.getElementById('carrito-cliente-sub').textContent=c?([c.BARRIO,c.LOCALIDAD].filter(Boolean).join(' · ')):'';
+  persistirCarrito();
   closeModal('modal-ficha-cliente');goTab('pedido',document.querySelectorAll('.nav-item')[2]);
 }
 function renderProductSearch(){
@@ -725,38 +746,76 @@ function renderProductSearch(){
   if(!list.length){el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:6px 0;">Sin resultados</div>';return;}
   el.innerHTML=list.map(p=>`<div class="product-row" onclick="agregarAlCarrito('${p.ID}')"><div style="flex:1;"><div style="font-weight:600;font-size:14px;">${p.NOMBRE}</div><div class="product-code">${p.CODIGO_INTERNO||''} ${p.CODIGO_BARRAS?'· '+p.CODIGO_BARRAS:''} · ${p.UNIDAD||'un'}</div></div><div class="product-price">$${parseFloat(p.PRECIO||0).toLocaleString('es-AR')}</div></div>`).join('');
 }
+function persistirCarrito(){
+  try{localStorage.setItem('distre_carrito',JSON.stringify(carrito));localStorage.setItem('distre_carrito_cliente',carritoClienteId||'');}catch(e){}
+}
+function restaurarCarrito(){
+  try{
+    const c=localStorage.getItem('distre_carrito');
+    const cl=localStorage.getItem('distre_carrito_cliente');
+    if(c){carrito=JSON.parse(c);}
+    if(cl&&cl!==''){
+      carritoClienteId=cl;
+      const cliente=DB.clientes.find(x=>x.ID===cl);
+      if(cliente){
+        document.getElementById('carrito-cliente-label').textContent=cliente.NOMBRE_NEGOCIO;
+        document.getElementById('carrito-cliente-sub').textContent=cliente.BARRIO||cliente.LOCALIDAD||'';
+      }
+    }
+    renderCarrito();
+  }catch(e){}
+}
 function agregarAlCarrito(id){
   const p=DB.productos.find(x=>x.ID===id);if(!p)return;
   const ex=carrito.find(i=>i.producto.ID===id);
   if(ex)ex.cantidad++;else carrito.push({producto:p,cantidad:1,descuento:0});
-  document.getElementById('search-productos').value='';document.getElementById('product-search-results').innerHTML='';
+  document.getElementById('search-productos').value='';
+  document.getElementById('product-search-results').innerHTML='';
+  persistirCarrito();
   renderCarrito();
 }
 function renderCarrito(){
-  const el=document.getElementById('carrito-items');const empty=document.getElementById('carrito-empty');const bar=document.getElementById('cart-bar');
-  if(!carrito.length){empty.style.display='block';bar.style.display='none';return;}
+  const lista=document.getElementById('carrito-lista');
+  const empty=document.getElementById('carrito-empty');
+  const bar=document.getElementById('cart-bar');
+  if(!lista)return;
+  if(!carrito.length){
+    empty.style.display='block';lista.innerHTML='';bar.style.display='none';return;
+  }
   empty.style.display='none';bar.style.display='flex';
   let total=0;
-  el.innerHTML=carrito.map((item,i)=>{
-    const sub=item.cantidad*parseFloat(item.producto.PRECIO||0)*(1-item.descuento/100);total+=sub;
-    return`<div class="cart-item"><div class="cart-item-header"><div class="cart-item-name">${item.producto.NOMBRE}</div><button onclick="quitarDelCarrito(${i})" style="background:none;border:none;color:var(--red);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;">×</button></div>
-    <div style="font-size:12px;color:var(--text2);margin-top:2px;">$${parseFloat(item.producto.PRECIO||0).toLocaleString('es-AR')} c/u</div>
-    <div class="cart-item-controls">
-      <div class="qty-btn" onclick="cambiarQty(${i},-1)">−</div>
-      <input class="qty-input" type="number" value="${item.cantidad}" min="0.01" step="1" onchange="setQty(${i},this.value)">
-      <div class="qty-btn" onclick="cambiarQty(${i},1)">+</div>
-      <span style="color:var(--text2);font-size:12px;">Dto.</span>
-      <input class="desc-input" type="number" value="${item.descuento}" min="0" max="100" step="1" onchange="setDesc(${i},this.value)">
-      <span style="color:var(--text2);font-size:12px;">%</span>
-      <span style="flex:1;text-align:right;font-family:var(--mono);font-weight:700;color:var(--accent);">$${sub.toLocaleString('es-AR',{maximumFractionDigits:2})}</span>
-    </div></div>`;
+  lista.innerHTML=carrito.map((item,i)=>{
+    const precio=parseFloat(item.producto.PRECIO||0);
+    const sub=item.cantidad*precio*(1-item.descuento/100);
+    total+=sub;
+    const tieneDesc=item.descuento>0;
+    return`<div class="cart-item">
+      <div class="cart-item-top">
+        <div class="cart-item-name">${item.producto.NOMBRE}</div>
+        <div class="cart-del-btn" onclick="quitarDelCarrito(${i})">×</div>
+      </div>
+      <div class="cart-item-precio">$${precio.toLocaleString('es-AR')} c/u${item.producto.DESCRIPCION?' · '+item.producto.DESCRIPCION:''}</div>
+      <div class="cart-item-row">
+        <div class="qty-group">
+          <div class="qty-btn" onclick="cambiarQty(${i},-1)">−</div>
+          <input class="qty-input" type="number" value="${item.cantidad}" min="0.01" step="1" onchange="setQty(${i},this.value)">
+          <div class="qty-btn" onclick="cambiarQty(${i},1)">+</div>
+        </div>
+        <div class="desc-group">
+          <input class="desc-input" type="number" value="${item.descuento}" min="0" max="100" step="1" placeholder="0" onchange="setDesc(${i},this.value)">
+          <span style="color:var(--text2);font-size:12px;">%dto</span>
+        </div>
+        <div class="cart-item-subtotal">${tieneDesc?`<span style="font-size:11px;color:var(--yellow);display:block;text-align:right;">−${item.descuento}%</span>`:''}$${sub.toLocaleString('es-AR',{maximumFractionDigits:0})}</div>
+      </div>
+    </div>`;
   }).join('');
-  document.getElementById('cart-total').textContent='$'+total.toLocaleString('es-AR',{maximumFractionDigits:2});
+  document.getElementById('cart-total').textContent='$'+total.toLocaleString('es-AR',{maximumFractionDigits:0});
+  document.getElementById('cart-items-count').textContent=carrito.length+' item'+(carrito.length!==1?'s':'');
 }
-function quitarDelCarrito(i){carrito.splice(i,1);renderCarrito();}
-function cambiarQty(i,d){carrito[i].cantidad=Math.max(0.01,carrito[i].cantidad+d);renderCarrito();}
-function setQty(i,v){carrito[i].cantidad=Math.max(0.01,parseFloat(v)||1);renderCarrito();}
-function setDesc(i,v){carrito[i].descuento=Math.min(100,Math.max(0,parseFloat(v)||0));renderCarrito();}
+function quitarDelCarrito(i){carrito.splice(i,1);persistirCarrito();renderCarrito();}
+function cambiarQty(i,d){carrito[i].cantidad=Math.max(1,carrito[i].cantidad+d);persistirCarrito();renderCarrito();}
+function setQty(i,v){carrito[i].cantidad=Math.max(0.01,parseFloat(v)||1);persistirCarrito();renderCarrito();}
+function setDesc(i,v){carrito[i].descuento=Math.min(100,Math.max(0,parseFloat(v)||0));persistirCarrito();renderCarrito();}
 function confirmarPedido(){
   if(!carritoClienteId){openModal('modal-seleccionar-cliente');renderSelCliente();return;}
   if(!carrito.length)return;
@@ -784,7 +843,10 @@ async function guardarPedido(){
   }
   closeModal('modal-confirmar-pedido');
   carrito=[];carritoClienteId=null;
-  document.getElementById('carrito-cliente-label').textContent='Seleccionar cliente';
+  localStorage.removeItem('distre_carrito');
+  localStorage.removeItem('distre_carrito_cliente');
+  document.getElementById('carrito-cliente-label').textContent='👤 Cliente';
+  document.getElementById('carrito-cliente-sub').textContent='';
   document.getElementById('pedido-notas').value='';
   renderCarrito();renderPedidos();renderDashboard();
   activePedidoId=pid;goTab('pedidos',document.querySelectorAll('.nav-item')[3]);
