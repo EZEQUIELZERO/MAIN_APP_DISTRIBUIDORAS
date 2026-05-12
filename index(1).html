@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>DISTRE APP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f1923;--bg2:#162030;--bg3:#1e2d40;--card:#1a2a3a;--border:#2a3d52;
+  --accent:#00d4ff;--accent2:#0099cc;--green:#00e676;--yellow:#ffd600;
+  --orange:#ff6d00;--red:#ff1744;--text:#e8f4f8;--text2:#8bafc4;--text3:#4a6a80;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:12px;--radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px}
+.screen{display:none;flex-direction:column;height:100vh}
+.screen.active{display:flex}
+/* LOGIN */
+#screen-login{background:linear-gradient(145deg,#0a1520,#0f1923,#0d2035);align-items:center;justify-content:center;padding:24px}
+.login-logo{font-size:48px;font-weight:700;letter-spacing:-2px;color:var(--accent);margin-bottom:4px}
+.login-sub{color:var(--text2);font-size:12px;letter-spacing:4px;text-transform:uppercase;margin-bottom:40px}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.login-card h2{font-size:18px;margin-bottom:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:15px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:70px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:var(--radius-sm);border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;width:100%}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:active{background:var(--accent2);transform:scale(.98)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:active{background:var(--border)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#000}
+.btn-sm{padding:7px 13px;font-size:13px;width:auto;border-radius:6px}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;display:none}
+/* TOPBAR */
+.topbar{display:flex;align-items:center;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);gap:12px;min-height:54px;flex-shrink:0}
+.topbar-title{font-size:17px;font-weight:700;flex:1}
+.topbar-sub{font-size:12px;color:var(--text2)}
+.user-badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.user-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.content::-webkit-scrollbar{display:none}
+/* NAVBAR */
+.navbar{display:flex;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px 7px;gap:3px;cursor:pointer;transition:all .15s;border:none;background:none;color:var(--text3);font-family:var(--font)}
+.nav-item.active{color:var(--accent)}
+.nav-item svg{width:22px;height:22px}
+.nav-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.card-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-tomado{background:rgba(255,214,0,.15);color:var(--yellow)}
+.badge-armado{background:rgba(0,212,255,.15);color:var(--accent)}
+.badge-entrega{background:rgba(255,109,0,.15);color:var(--orange)}
+.badge-entregado{background:rgba(0,230,118,.12);color:var(--green)}
+.badge-cobrado{background:rgba(0,230,118,.25);color:var(--green)}
+/* DASHBOARD */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat-num{font-size:30px;font-weight:700;line-height:1;margin-bottom:4px}
+.stat-label{font-size:12px;color:var(--text2)}
+.stat-accent{color:var(--accent)}.stat-green{color:var(--green)}.stat-yellow{color:var(--yellow)}.stat-orange{color:var(--orange)}
+/* SEARCH */
+.search-bar{position:relative;margin-bottom:12px}
+.search-bar input{width:100%;padding:10px 13px 10px 38px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:15px;outline:none}
+.search-bar input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);width:17px;height:17px}
+/* ROWS */
+.cliente-row{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:7px;cursor:pointer;display:flex;align-items:center;gap:11px}
+.cliente-row:active{border-color:var(--accent)}
+.cliente-avatar{width:40px;height:40px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--accent);flex-shrink:0}
+.cliente-info{flex:1;min-width:0}
+.cliente-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cliente-meta{font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cliente-right{text-align:right;flex-shrink:0}
+.pedido-row{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:7px;cursor:pointer}
+.pedido-row:active{border-color:var(--accent)}
+.pedido-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;gap:8px}
+.pedido-cliente{font-weight:600;font-size:14px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pedido-meta{font-size:12px;color:var(--text2);margin-bottom:5px}
+.pedido-footer{display:flex;align-items:center;justify-content:space-between}
+.pedido-total{font-size:17px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+/* CART */
+.cart-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;margin-bottom:7px}
+.cart-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.cart-item-name{font-weight:600;font-size:14px;flex:1}
+.cart-item-controls{display:flex;align-items:center;gap:7px;margin-top:9px;flex-wrap:wrap}
+.qty-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.qty-btn:active{background:var(--border)}
+.qty-input{width:55px;text-align:center;padding:5px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:14px;font-weight:600}
+.desc-input{width:55px;text-align:center;padding:5px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--yellow);font-family:var(--mono);font-size:13px}
+.cart-total-bar{position:sticky;bottom:0;background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cart-total-num{font-size:22px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+/* FICHA */
+.ficha-section{margin-bottom:18px}
+.ficha-section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.ficha-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,61,82,.4)}
+.ficha-row:last-child{border-bottom:none}
+.ficha-key{font-size:13px;color:var(--text2);flex-shrink:0}
+.ficha-val{font-size:14px;font-weight:500;text-align:right;max-width:65%;word-break:break-word}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:18px 18px 36px;width:100%;max-height:92vh;overflow-y:auto}
+.modal::-webkit-scrollbar{display:none}
+.modal-handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:18px}
+.modal-actions{display:flex;gap:9px;margin-top:14px}
+/* CHIPS */
+.filter-chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.filter-chips::-webkit-scrollbar{display:none}
+.chip{padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--text2);transition:all .15s;flex-shrink:0}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#000}
+/* SYNC */
+.sync-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);flex-shrink:0}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.sync-dot.syncing{animation:pulse 1s infinite;background:var(--yellow)}
+.sync-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* SALDO */
+.saldo-pos{color:var(--red);font-weight:700}
+.saldo-neg{color:var(--green);font-weight:700}
+.saldo-zero{color:var(--text2)}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+.empty{text-align:center;padding:36px 20px;color:var(--text2)}
+.empty svg{width:44px;height:44px;margin:0 auto 10px;display:block;opacity:.3}
+.empty p{font-size:14px}
+.product-row{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:5px;cursor:pointer}
+.product-row:active{border-color:var(--accent)}
+.product-price{font-family:var(--mono);font-size:14px;color:var(--accent);font-weight:600;flex-shrink:0}
+.product-code{font-size:11px;color:var(--text3);margin-top:1px}
+/* MEDIO */
+.medio-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px}
+.medio-btn{padding:11px 6px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--card);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s}
+.medio-btn.selected{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.08)}
+.config-item{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
+.config-label{font-size:15px}.config-sub{font-size:12px;color:var(--text2);margin-top:2px}
+/* PRINT */
+@media print{body *{visibility:hidden}#remito-print,#remito-print *{visibility:visible}#remito-print{position:fixed;left:0;top:0;width:100%;background:white;color:black;padding:20px;font-family:Arial,sans-serif;font-size:13px}}
+#remito-print{display:none}
+.remito-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+.remito-table th,.remito-table td{border:1px solid #ccc;padding:5px 9px}
+.remito-table th{background:#eee}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-logo">DISTRE</div>
+  <div class="login-sub">Distribuidora · App de campo</div>
+  <div class="login-card">
+    <h2>Iniciar sesión</h2>
+    <div class="field"><label>Usuario</label><input type="text" id="login-user" placeholder="Nombre de usuario" autocomplete="username"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary" onclick="doLogin()">Ingresar</button>
+    <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="screen-app" class="screen" style="display:none;flex-direction:column;">
+  <div class="sync-bar" id="sync-bar">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-text">Sin conexión a Sheets</span>
+    <button class="btn btn-sm btn-secondary" style="margin-left:auto;padding:4px 10px;font-size:12px;" onclick="syncAll()">↻</button>
+  </div>
+
+  <!-- TAB: INICIO -->
+  <div id="tab-inicio" class="screen active" style="height:auto;flex:1;overflow:hidden;">
+    <div class="topbar">
+      <div><div class="topbar-title">Inicio</div><div class="topbar-sub" id="dash-fecha"></div></div>
+      <div class="user-badge"><div class="user-dot"></div><span id="dash-user">–</span></div>
+    </div>
+    <div class="content">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num stat-accent" id="stat-visitados">0</div><div class="stat-label">Visitados hoy</div></div>
+        <div class="stat-card"><div class="stat-num stat-yellow" id="stat-tomados">0</div><div class="stat-label">Pedidos tomados</div></div>
+        <div class="stat-card"><div class="stat-num stat-orange" id="stat-armados">0</div><div class="stat-label">Para armar</div></div>
+        <div class="stat-card"><div class="stat-num stat-green" id="stat-cobrado">$0</div><div class="stat-label">Cobrado hoy</div></div>
+      </div>
+      <div class="card"><div class="card-title">Pedidos pendientes</div><div id="dash-pendientes"><div class="empty"><p>Sin pendientes</p></div></div></div>
+      <div class="card"><div class="card-title">Visitas programadas hoy</div><div id="dash-visitas-hoy"><div class="empty"><p>Sin visitas para hoy</p></div></div></div>
+    </div>
+  </div>
+
+  <!-- TAB: CLIENTES -->
+  <div id="tab-clientes" class="screen" style="height:auto;flex:1;overflow:hidden;">
+    <div class="topbar">
+      <div class="topbar-title">Clientes</div>
+      <button class="btn btn-sm btn-primary" onclick="abrirNuevoCliente()">+ Nuevo</button>
+    </div>
+    <div style="padding:12px 14px 0;flex-shrink:0;">
+      <div class="search-bar">
+        <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" id="search-clientes" placeholder="Nombre, barrio, código, contacto..." oninput="renderClientes()">
+      </div>
+      <div class="filter-chips" id="filtro-localidades"><div class="chip active" data-loc="TODOS" onclick="setFiltroLoc(this)">Todos</div></div>
+    </div>
+    <div class="content" style="padding-top:4px;" id="lista-clientes"><div class="empty"><p>Sin clientes cargados</p></div></div>
+  </div>
+
+  <!-- TAB: PEDIDO (CARRITO) -->
+  <div id="tab-pedido" class="screen" style="height:auto;flex:1;overflow:hidden;flex-direction:column;">
+    <div class="topbar">
+      <div class="topbar-title">Nuevo Pedido</div>
+      <button class="btn btn-sm btn-secondary" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="openModal('modal-seleccionar-cliente');renderSelCliente()">
+        <span id="carrito-cliente-label">Seleccionar cliente</span>
+      </button>
+    </div>
+    <div style="padding:12px 14px 0;flex-shrink:0;">
+      <div class="search-bar">
+        <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" id="search-productos" placeholder="Buscar producto..." oninput="renderProductSearch()">
+      </div>
+      <div id="product-search-results"></div>
+    </div>
+    <div class="content" id="carrito-items" style="padding-top:4px;">
+      <div class="empty" id="carrito-empty">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 6h13M10 19a1 1 0 100 2 1 1 0 000-2zm7 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
+        <p>Buscá un producto para agregar</p>
+      </div>
+    </div>
+    <div class="cart-total-bar" id="cart-bar" style="display:none;">
+      <div><div style="font-size:11px;color:var(--text2);">Total</div><div class="cart-total-num" id="cart-total">$0</div></div>
+      <button class="btn btn-primary" style="width:auto;" onclick="confirmarPedido()">Confirmar ›</button>
+    </div>
+  </div>
+
+  <!-- TAB: PEDIDOS -->
+  <div id="tab-pedidos" class="screen" style="height:auto;flex:1;overflow:hidden;">
+    <div class="topbar"><div class="topbar-title">Pedidos</div></div>
+    <div style="padding:12px 14px 0;flex-shrink:0;">
+      <div class="filter-chips" id="filtro-pedidos">
+        <div class="chip active" data-estado="TODOS" onclick="setFiltroPedido(this)">Todos</div>
+        <div class="chip" data-estado="TOMADO" onclick="setFiltroPedido(this)">Tomados</div>
+        <div class="chip" data-estado="ARMADO" onclick="setFiltroPedido(this)">Armados</div>
+        <div class="chip" data-estado="EN_ENTREGA" onclick="setFiltroPedido(this)">En entrega</div>
+        <div class="chip" data-estado="ENTREGADO" onclick="setFiltroPedido(this)">Entregados</div>
+        <div class="chip" data-estado="COBRADO" onclick="setFiltroPedido(this)">Cobrados</div>
+      </div>
+    </div>
+    <div class="content" style="padding-top:4px;" id="lista-pedidos"><div class="empty"><p>Sin pedidos</p></div></div>
+  </div>
+
+  <!-- TAB: CONFIG -->
+  <div id="tab-config" class="screen" style="height:auto;flex:1;overflow:hidden;">
+    <div class="topbar"><div class="topbar-title">Configuración</div></div>
+    <div class="content">
+      <div class="card">
+        <div class="card-title">Google Sheets</div>
+        <div id="google-auth-status">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Conectá tu cuenta para sincronizar datos en tiempo real.</div>
+          <button class="btn btn-primary" onclick="authGoogle()">Conectar con Google</button>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--text3);">ID: 13DikWTArbtXVeoZDFXlatlZUW4zbnIsQNUFwJl2vKwY</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Importar Datos</div>
+        <div class="field">
+          <label>Clientes (CSV)</label>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:7px;">CODIGO, NOMBRE_NEGOCIO, CONTACTO, LOCALIDAD, BARRIO, DIRECCION, TELEFONO, CUIT, ES_CLIENTE</div>
+          <input type="file" accept=".csv" onchange="importCSV(event,'clientes')" style="color:var(--text2);font-size:13px;">
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Productos (CSV)</label>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:7px;">CODIGO_INTERNO, CODIGO_BARRAS, NOMBRE, DESCRIPCION, UNIDAD, PRECIO</div>
+          <input type="file" accept=".csv" onchange="importCSV(event,'productos')" style="color:var(--text2);font-size:13px;">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Sesión</div>
+        <div class="config-item"><div><div class="config-label" id="cfg-username">–</div><div class="config-sub">Usuario activo</div></div></div>
+        <button class="btn btn-danger" style="margin-top:12px;" onclick="doLogout()">Cerrar sesión</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Usuarios</div>
+        <div id="lista-usuarios"></div>
+        <button class="btn btn-secondary" style="margin-top:12px;" onclick="openModal('modal-nuevo-usuario')">+ Nuevo usuario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <button class="nav-item active" onclick="goTab('inicio',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      <span class="nav-label">Inicio</span>
+    </button>
+    <button class="nav-item" onclick="goTab('clientes',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <span class="nav-label">Clientes</span>
+    </button>
+    <button class="nav-item" onclick="goTab('pedido',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 6h13M10 19a1 1 0 100 2 1 1 0 000-2zm7 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
+      <span class="nav-label">Pedido</span>
+    </button>
+    <button class="nav-item" onclick="goTab('pedidos',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+      <span class="nav-label">Pedidos</span>
+    </button>
+    <button class="nav-item" onclick="goTab('config',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span class="nav-label">Config</span>
+    </button>
+  </nav>
+</div>
+
+<!-- MODALS -->
+<!-- Ficha Cliente -->
+<div class="modal-overlay" id="modal-ficha-cliente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="modal-title" id="ficha-title" style="margin:0;">Cliente</div>
+      <button class="btn btn-sm btn-secondary" onclick="editarCliente()">✏️ Editar</button>
+    </div>
+    <div id="ficha-content"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="irACarritoConCliente()">🛒 Nuevo pedido</button>
+      <button class="btn btn-secondary" onclick="registrarVisita()">📍 Visita</button>
+      <button class="btn btn-secondary" onclick="verPedidosCliente()">📦 Pedidos</button>
+      <button class="btn btn-secondary" onclick="registrarCobro()">💰 Cobrar</button>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeModal('modal-ficha-cliente')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Nuevo/Editar Cliente -->
+<div class="modal-overlay" id="modal-nuevo-cliente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="nuevo-cliente-title">Nuevo Cliente</div>
+    <input type="hidden" id="edit-cliente-id">
+    <div class="field"><label>Nombre del negocio *</label><input type="text" id="nc-nombre"></div>
+    <div class="field"><label>Contacto</label><input type="text" id="nc-contacto"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+      <div class="field"><label>Localidad</label><input type="text" id="nc-localidad"></div>
+      <div class="field"><label>Barrio</label><input type="text" id="nc-barrio"></div>
+    </div>
+    <div class="field"><label>Dirección</label><input type="text" id="nc-direccion"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+      <div class="field"><label>Teléfono</label><input type="tel" id="nc-telefono"></div>
+      <div class="field"><label>CUIT</label><input type="text" id="nc-cuit"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+      <div class="field"><label>¿Es cliente?</label><select id="nc-escliente"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+      <div class="field"><label>Días de visita</label><input type="text" id="nc-dias" placeholder="Lun, Mié..."></div>
+    </div>
+    <div class="field"><label>Notas</label><textarea id="nc-notas" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-nuevo-cliente')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Seleccionar Cliente para carrito -->
+<div class="modal-overlay" id="modal-seleccionar-cliente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Seleccionar Cliente</div>
+    <div class="search-bar">
+      <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="search" id="search-sel-cliente" placeholder="Buscar..." oninput="renderSelCliente()">
+    </div>
+    <div id="sel-cliente-list" style="max-height:55vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- Confirmar Pedido -->
+<div class="modal-overlay" id="modal-confirmar-pedido">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Confirmar Pedido</div>
+    <div id="confirm-resumen"></div>
+    <div class="field" style="margin-top:10px;"><label>Notas</label><textarea id="pedido-notas" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-confirmar-pedido')">Volver</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="guardarPedido()">✅ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detalle Pedido -->
+<div class="modal-overlay" id="modal-detalle-pedido">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="detalle-pedido-titulo">Pedido</div>
+    <div id="detalle-pedido-content"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;" id="detalle-pedido-acciones"></div>
+    <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeModal('modal-detalle-pedido')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Registrar Visita -->
+<div class="modal-overlay" id="modal-visita">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Registrar Visita</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+      <div class="field"><label>Acción</label><select id="visita-accion"><option value="VISITA">Visita</option><option value="LLAMADA">Llamada</option><option value="ENTREGA">Entrega</option><option value="COBRO">Cobro</option></select></div>
+      <div class="field"><label>Resultado</label><select id="visita-resultado"><option value="EXITOSO">Exitoso</option><option value="SIN_PEDIDO">Sin pedido</option><option value="NO_ESTABA">No estaba</option><option value="REAGENDAR">Reagendar</option></select></div>
+    </div>
+    <div class="field"><label>Próxima visita</label><input type="date" id="visita-proxima"></div>
+    <div class="field"><label>Notas</label><textarea id="visita-notas" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-visita')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="guardarVisita()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cobro -->
+<div class="modal-overlay" id="modal-cobro">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Registrar Cobro</div>
+    <div id="cobro-cliente-info" style="margin-bottom:12px;font-size:14px;color:var(--text2);"></div>
+    <div class="field"><label>Monto $</label><input type="number" id="cobro-monto" placeholder="0.00" step="0.01"></div>
+    <div class="field"><label>Medio de pago</label></div>
+    <div class="medio-grid">
+      <div class="medio-btn selected" onclick="selMedio(this,'EFECTIVO')">💵 Efectivo</div>
+      <div class="medio-btn" onclick="selMedio(this,'TRANSFERENCIA')">📲 Transfer.</div>
+      <div class="medio-btn" onclick="selMedio(this,'CTA_CTE')">📒 Cta Cte</div>
+    </div>
+    <div class="field"><label>Notas</label><textarea id="cobro-notas" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-cobro')">Cancelar</button>
+      <button class="btn btn-green" style="flex:2;" onclick="guardarCobro()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nuevo Usuario -->
+<div class="modal-overlay" id="modal-nuevo-usuario">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nuevo Usuario</div>
+    <div class="field"><label>Nombre</label><input type="text" id="nu-nombre"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="nu-pass"></div>
+    <div class="field"><label>Rol</label><select id="nu-rol"><option value="VENDEDOR">Vendedor</option><option value="ADMIN">Admin</option></select></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-nuevo-usuario')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="guardarUsuario()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- Remito (print) -->
+<div id="remito-print"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const SHEETS_ID='13DikWTArbtXVeoZDFXlatlZUW4zbnIsQNUFwJl2vKwY';
+const CLIENT_ID='883026461782-n03oopm51afod6f1ktc7niq35i2mpsok.apps.googleusercontent.com';
+const SCOPES='https://www.googleapis.com/auth/spreadsheets';
+
+// ── ESTADO ──────────────────────────────────────────────────
+let DB={clientes:[],productos:[],pedidos:[],pedidoItems:[],cobros:[],visitas:[],usuarios:[]};
+let currentUser=null,gapi_token=null,gapi_ready=false;
+let carrito=[],carritoClienteId=null,activePedidoId=null,activeFichaId=null;
+let medioCobroSelected='EFECTIVO',cobroClienteId=null;
+let filtroLocActivo='TODOS',filtroPedidoActivo='TODOS';
+
+// ── INDEXEDDB ────────────────────────────────────────────────
+let idb;
+function openIDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open('DistreApp',2);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      ['clientes','productos','pedidos','pedidoItems','cobros','visitas','usuarios'].forEach(s=>{
+        if(!db.objectStoreNames.contains(s))db.createObjectStore(s,{keyPath:'ID'});
+      });
+    };
+    req.onsuccess=e=>{idb=e.target.result;res(idb)};
+    req.onerror=rej;
+  });
+}
+function idbGetAll(store){return new Promise((res,rej)=>{const tx=idb.transaction(store,'readonly');const req=tx.objectStore(store).getAll();req.onsuccess=()=>res(req.result);req.onerror=rej});}
+function idbPutAll(store,items){return new Promise((res,rej)=>{const tx=idb.transaction(store,'readwrite');const st=tx.objectStore(store);items.forEach(i=>st.put(i));tx.oncomplete=res;tx.onerror=rej});}
+function idbPut(store,item){return new Promise((res,rej)=>{const tx=idb.transaction(store,'readwrite');tx.objectStore(store).put(item);tx.oncomplete=res;tx.onerror=rej});}
+async function loadFromIDB(){for(const k of Object.keys(DB)){DB[k]=await idbGetAll(k);}}
+
+// ── AUTH LOCAL ───────────────────────────────────────────────
+function hashPass(p){let h=0;for(let i=0;i<p.length;i++){h=((h<<5)-h)+p.charCodeAt(i);h|=0}return 'D'+Math.abs(h).toString(16)+'DISTRE';}
+
+function doLogin(){
+  const user=document.getElementById('login-user').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  if(!user||!pass){err.style.display='block';err.textContent='Completá todos los campos';return;}
+  let found=DB.usuarios.find(u=>u.NOMBRE.toLowerCase()===user.toLowerCase()&&u.ACTIVO==='SI'&&u.PASSWORD_HASH===hashPass(pass));
+  if(!found&&user.toLowerCase()==='admin'&&pass==='admin123')found={ID:'1',NOMBRE:'Admin',ROL:'ADMIN',ACTIVO:'SI'};
+  if(!found){err.style.display='block';return;}
+  currentUser=found;localStorage.setItem('distre_user',JSON.stringify(found));err.style.display='none';initApp();
+}
+function doLogout(){
+  currentUser=null;localStorage.removeItem('distre_user');
+  document.getElementById('screen-login').style.display='flex';
+  document.getElementById('screen-app').style.display='none';
+  document.getElementById('login-pass').value='';
+}
+
+// ── GOOGLE SHEETS API ────────────────────────────────────────
+function loadGapi(){
+  return new Promise(res=>{
+    if(window.gapi){gapi.load('client',async()=>{await gapi.client.init({discoveryDocs:['https://sheets.googleapis.com/$discovery/rest?version=v4']});gapi_ready=true;res()});return;}
+    const s=document.createElement('script');s.src='https://apis.google.com/js/api.js';
+    s.onload=()=>gapi.load('client',async()=>{await gapi.client.init({discoveryDocs:['https://sheets.googleapis.com/$discovery/rest?version=v4']});gapi_ready=true;res()});
+    document.head.appendChild(s);
+  });
+}
+function loadGis(){
+  return new Promise(res=>{
+    if(window.google?.accounts){res();return;}
+    const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=res;document.head.appendChild(s);
+  });
+}
+function authGoogle(){
+  const tc=google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,scope:SCOPES,
+    callback:async resp=>{
+      if(resp.error){setSyncStatus('error','Error auth');return;}
+      gapi_token=resp.access_token;gapi.client.setToken({access_token:gapi_token});
+      localStorage.setItem('distre_gtoken',gapi_token);
+      document.getElementById('google-auth-status').innerHTML='<div style="color:var(--green);font-weight:600;margin-bottom:10px;">✅ Conectado a Google Sheets</div><button class="btn btn-secondary btn-sm" onclick="syncAll()">Sincronizar ahora</button>';
+      await syncAll();
+    }
+  });
+  tc.requestAccessToken();
+}
+async function sheetsGet(range){const r=await gapi.client.sheets.spreadsheets.values.get({spreadsheetId:SHEETS_ID,range});return r.result.values||[];}
+async function sheetsAppend(range,values){await gapi.client.sheets.spreadsheets.values.append({spreadsheetId:SHEETS_ID,range,valueInputOption:'USER_ENTERED',resource:{values}});}
+async function sheetsUpdate(range,values){await gapi.client.sheets.spreadsheets.values.update({spreadsheetId:SHEETS_ID,range,valueInputOption:'USER_ENTERED',resource:{values}});}
+function rowsToObjs(rows){if(!rows||rows.length<2)return[];const h=rows[0];return rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=r[i]||'');return o;});}
+async function syncAll(){
+  if(!gapi_token){setSyncStatus('error','Sin conexión');return;}
+  setSyncStatus('syncing','Sincronizando...');
+  try{
+    const map={clientes:'CLIENTES!A:S',productos:'PRODUCTOS!A:H',pedidos:'PEDIDOS!A:M',pedidoItems:'PEDIDO_ITEMS!A:H',cobros:'COBROS!A:I',visitas:'VISITAS!A:H',usuarios:'USUARIOS!A:E'};
+    for(const[k,r]of Object.entries(map)){const rows=await sheetsGet(r);DB[k]=rowsToObjs(rows);await idbPutAll(k,DB[k]);}
+    setSyncStatus('ok','Sheets · '+new Date().toLocaleTimeString('es-AR'));renderAll();
+  }catch(e){console.error(e);setSyncStatus('error','Error al sincronizar');}
+}
+async function pushRow(sheet,headers,obj){
+  if(!gapi_token)return;
+  await sheetsAppend(sheet+'!A1',[headers.map(h=>obj[h]||'')]);
+}
+async function updatePedidoInSheet(p){
+  if(!gapi_token)return;
+  try{
+    const rows=await sheetsGet('PEDIDOS!A:A');
+    const idx=rows.findIndex(r=>r[0]===p.ID);
+    if(idx>0){const h=['ID','NUMERO_REMITO','ID_CLIENTE','NOMBRE_CLIENTE','FECHA','ESTADO','TOTAL','DESCUENTO_TOTAL','NOTAS','USUARIO','FECHA_ARMADO','FECHA_ENTREGA','FECHA_COBRO'];await sheetsUpdate('PEDIDOS!A'+(idx+1),[h.map(k=>p[k]||'')]);}
+  }catch(e){console.error(e);}
+}
+function setSyncStatus(state,text){
+  const d=document.getElementById('sync-dot'),t=document.getElementById('sync-text');
+  d.className='sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');t.textContent=text;
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function initApp(){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-app').style.display='flex';
+  document.getElementById('dash-user').textContent=currentUser.NOMBRE;
+  document.getElementById('cfg-username').textContent=currentUser.NOMBRE+' ('+currentUser.ROL+')';
+  document.getElementById('dash-fecha').textContent=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  await loadFromIDB();renderAll();
+  await loadGapi();await loadGis();
+  const t=localStorage.getItem('distre_gtoken');
+  if(t){gapi_token=t;gapi.client.setToken({access_token:t});
+    document.getElementById('google-auth-status').innerHTML='<div style="color:var(--green);font-weight:600;margin-bottom:10px;">✅ Conectado</div><button class="btn btn-secondary btn-sm" onclick="syncAll()">Sincronizar ahora</button>';
+    syncAll();}
+}
+function renderAll(){renderDashboard();renderClientes();renderPedidos();renderUsuarios();renderFiltroLocalidades();}
+
+// ── NAV ──────────────────────────────────────────────────────
+function goTab(tab,el){
+  document.querySelectorAll('#screen-app>div[id^="tab-"]').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(el)el.classList.add('active');
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open');});
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDashboard(){
+  const hoy=new Date().toLocaleDateString('es-AR');
+  document.getElementById('stat-visitados').textContent=DB.visitas.filter(v=>new Date(v.FECHA).toLocaleDateString('es-AR')===hoy).length;
+  document.getElementById('stat-tomados').textContent=DB.pedidos.filter(p=>p.ESTADO==='TOMADO').length;
+  document.getElementById('stat-armados').textContent=DB.pedidos.filter(p=>p.ESTADO==='ARMADO').length;
+  const cob=DB.cobros.filter(c=>new Date(c.FECHA).toLocaleDateString('es-AR')===hoy).reduce((a,c)=>a+parseFloat(c.MONTO||0),0);
+  document.getElementById('stat-cobrado').textContent='$'+cob.toLocaleString('es-AR');
+  const pend=DB.pedidos.filter(p=>['TOMADO','ARMADO','EN_ENTREGA'].includes(p.ESTADO)).slice(0,5);
+  document.getElementById('dash-pendientes').innerHTML=pend.length?pend.map(p=>`<div class="pedido-row" onclick="abrirDetallePedido('${p.ID}')"><div class="pedido-header"><span class="pedido-cliente">${p.NOMBRE_CLIENTE}</span>${badgeEstado(p.ESTADO)}</div><div class="pedido-footer"><span class="pedido-meta">${p.FECHA}</span><span class="pedido-total">$${parseFloat(p.TOTAL||0).toLocaleString('es-AR')}</span></div></div>`).join(''):'<div class="empty"><p>Sin pendientes</p></div>';
+  const visHoy=DB.clientes.filter(c=>{if(!c.PROXIMA_VISITA)return false;try{return new Date(c.PROXIMA_VISITA).toLocaleDateString('es-AR')===hoy;}catch{return false;}}).slice(0,5);
+  document.getElementById('dash-visitas-hoy').innerHTML=visHoy.length?visHoy.map(c=>`<div class="cliente-row" onclick="abrirFichaCliente('${c.ID}')"><div class="cliente-avatar">${(c.NOMBRE_NEGOCIO||'?')[0].toUpperCase()}</div><div class="cliente-info"><div class="cliente-name">${c.NOMBRE_NEGOCIO}</div><div class="cliente-meta">${c.BARRIO||c.LOCALIDAD||''}</div></div></div>`).join(''):'<div class="empty"><p>Sin visitas programadas hoy</p></div>';
+}
+
+// ── CLIENTES ──────────────────────────────────────────────────
+function renderFiltroLocalidades(){
+  const locs=[...new Set(DB.clientes.map(c=>c.LOCALIDAD).filter(Boolean))].sort();
+  document.getElementById('filtro-localidades').innerHTML=`<div class="chip active" data-loc="TODOS" onclick="setFiltroLoc(this)">Todos</div>`+locs.map(l=>`<div class="chip" data-loc="${l}" onclick="setFiltroLoc(this)">${l}</div>`).join('');
+}
+function setFiltroLoc(el){document.querySelectorAll('#filtro-localidades .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');filtroLocActivo=el.dataset.loc;renderClientes();}
+function renderClientes(){
+  const q=(document.getElementById('search-clientes')?.value||'').toLowerCase();
+  let list=DB.clientes;
+  if(filtroLocActivo!=='TODOS')list=list.filter(c=>c.LOCALIDAD===filtroLocActivo);
+  if(q)list=list.filter(c=>[(c.NOMBRE_NEGOCIO||''),(c.BARRIO||''),(c.CODIGO||''),(c.CONTACTO||'')].join(' ').toLowerCase().includes(q));
+  const el=document.getElementById('lista-clientes');
+  if(!list.length){el.innerHTML='<div class="empty"><p>Sin clientes</p></div>';return;}
+  el.innerHTML=list.map(c=>{
+    const saldo=parseFloat(c.SALDO_CTA_CTE||0);
+    const sc=saldo>0?'saldo-pos':saldo<0?'saldo-neg':'saldo-zero';
+    const ped=DB.pedidos.filter(p=>p.ID_CLIENTE===c.ID&&['TOMADO','ARMADO','EN_ENTREGA'].includes(p.ESTADO)).length;
+    return`<div class="cliente-row" onclick="abrirFichaCliente('${c.ID}')"><div class="cliente-avatar">${(c.NOMBRE_NEGOCIO||'?')[0].toUpperCase()}</div><div class="cliente-info"><div class="cliente-name">${c.NOMBRE_NEGOCIO}</div><div class="cliente-meta">${[c.BARRIO,c.LOCALIDAD].filter(Boolean).join(' · ')}${c.CONTACTO?' · '+c.CONTACTO:''}</div></div><div class="cliente-right">${saldo!==0?`<span class="${sc}">$${Math.abs(saldo).toLocaleString('es-AR')}</span>`:''} ${ped?`<div style="font-size:11px;color:var(--yellow)">${ped} pedido${ped>1?'s':''}</div>`:''}</div></div>`;
+  }).join('');
+}
+function abrirFichaCliente(id){
+  activeFichaId=id;const c=DB.clientes.find(x=>x.ID===id);if(!c)return;
+  document.getElementById('ficha-title').textContent=c.NOMBRE_NEGOCIO;
+  const saldo=parseFloat(c.SALDO_CTA_CTE||0);const sc=saldo>0?'saldo-pos':saldo<0?'saldo-neg':'saldo-zero';
+  const peds=DB.pedidos.filter(p=>p.ID_CLIENTE===id).slice(-3).reverse();
+  const vis=DB.visitas.filter(v=>v.ID_CLIENTE===id).slice(-3).reverse();
+  document.getElementById('ficha-content').innerHTML=`
+    <div class="ficha-section"><div class="ficha-section-title">Negocio</div>
+      ${ff('Dirección',c.DIRECCION)}${ff('Barrio',c.BARRIO)}${ff('Localidad',c.LOCALIDAD)}
+      ${ff('Teléfono',c.TELEFONO?`<a href="tel:${c.TELEFONO}" style="color:var(--accent)">${c.TELEFONO}</a>`:'')}
+      ${ff('CUIT',c.CUIT)}${ff('Días visita',c.DIAS_VISITA)}${ff('Próxima visita',c.PROXIMA_VISITA)}
+    </div>
+    <div class="ficha-section"><div class="ficha-section-title">Financiero</div>
+      <div class="ficha-row"><span class="ficha-key">Saldo cta cte</span><span class="ficha-val ${sc}">$${saldo.toLocaleString('es-AR')}</span></div>
+      ${saldo>0?'<div style="font-size:12px;color:var(--red);padding:6px 0;">⚠️ Deuda pendiente</div>':''}
+    </div>
+    ${c.NOTAS?`<div class="ficha-section"><div class="ficha-section-title">Notas</div><div style="font-size:14px;color:var(--text2);">${c.NOTAS}</div></div>`:''}
+    ${peds.length?`<div class="ficha-section"><div class="ficha-section-title">Últimos pedidos</div>${peds.map(p=>`<div class="ficha-row"><span class="ficha-key">${p.FECHA}</span><span>${badgeEstado(p.ESTADO)} <span style="font-family:var(--mono);font-size:12px;">$${parseFloat(p.TOTAL||0).toLocaleString('es-AR')}</span></span></div>`).join('')}</div>`:''}
+    ${vis.length?`<div class="ficha-section"><div class="ficha-section-title">Últimas visitas</div>${vis.map(v=>`<div class="ficha-row"><span class="ficha-key">${v.FECHA}</span><span class="ficha-val">${v.ACCION} · ${v.RESULTADO}</span></div>`).join('')}</div>`:''}
+  `;
+  openModal('modal-ficha-cliente');
+}
+function ff(k,v){if(!v)return'';return`<div class="ficha-row"><span class="ficha-key">${k}</span><span class="ficha-val">${v}</span></div>`;}
+function abrirNuevoCliente(){
+  document.getElementById('nuevo-cliente-title').textContent='Nuevo Cliente';
+  document.getElementById('edit-cliente-id').value='';
+  ['nc-nombre','nc-contacto','nc-localidad','nc-barrio','nc-direccion','nc-telefono','nc-cuit','nc-dias','nc-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('nc-escliente').value='SI';
+  openModal('modal-nuevo-cliente');
+}
+function editarCliente(){
+  const c=DB.clientes.find(x=>x.ID===activeFichaId);if(!c)return;
+  closeModal('modal-ficha-cliente');
+  document.getElementById('nuevo-cliente-title').textContent='Editar Cliente';
+  document.getElementById('edit-cliente-id').value=c.ID;
+  document.getElementById('nc-nombre').value=c.NOMBRE_NEGOCIO||'';
+  document.getElementById('nc-contacto').value=c.CONTACTO||'';
+  document.getElementById('nc-localidad').value=c.LOCALIDAD||'';
+  document.getElementById('nc-barrio').value=c.BARRIO||'';
+  document.getElementById('nc-direccion').value=c.DIRECCION||'';
+  document.getElementById('nc-telefono').value=c.TELEFONO||'';
+  document.getElementById('nc-cuit').value=c.CUIT||'';
+  document.getElementById('nc-escliente').value=c.ES_CLIENTE||'SI';
+  document.getElementById('nc-dias').value=c.DIAS_VISITA||'';
+  document.getElementById('nc-notas').value=c.NOTAS||'';
+  openModal('modal-nuevo-cliente');
+}
+async function guardarCliente(){
+  const nombre=document.getElementById('nc-nombre').value.trim();
+  if(!nombre){alert('El nombre es obligatorio');return;}
+  const editId=document.getElementById('edit-cliente-id').value;
+  const isEdit=!!editId;const id=isEdit?editId:'C'+Date.now();
+  const orig=isEdit?DB.clientes.find(c=>c.ID===editId):{};
+  const obj={ID:id,CODIGO:orig.CODIGO||id,NOMBRE_NEGOCIO:nombre,CONTACTO:document.getElementById('nc-contacto').value,
+    LOCALIDAD:document.getElementById('nc-localidad').value,BARRIO:document.getElementById('nc-barrio').value,
+    DIRECCION:document.getElementById('nc-direccion').value,TELEFONO:document.getElementById('nc-telefono').value,
+    CUIT:document.getElementById('nc-cuit').value,ES_CLIENTE:document.getElementById('nc-escliente').value,
+    DIAS_VISITA:document.getElementById('nc-dias').value,PROXIMA_VISITA:orig.PROXIMA_VISITA||'',
+    SALDO_CTA_CTE:orig.SALDO_CTA_CTE||'0',NOTAS:document.getElementById('nc-notas').value,
+    USUARIO_REGISTRO:currentUser.NOMBRE,FECHA_ULTIMA_VISITA:orig.FECHA_ULTIMA_VISITA||'',
+    ULTIMA_ACCION:orig.ULTIMA_ACCION||'',FECHA_ALTA:orig.FECHA_ALTA||today(),ACTIVO:'SI'};
+  if(isEdit){const idx=DB.clientes.findIndex(c=>c.ID===editId);DB.clientes[idx]=obj;}else{DB.clientes.push(obj);}
+  await idbPut('clientes',obj);
+  if(gapi_token&&!isEdit){await pushRow('CLIENTES',['ID','CODIGO','NOMBRE_NEGOCIO','CONTACTO','LOCALIDAD','BARRIO','DIRECCION','TELEFONO','CUIT','ES_CLIENTE','DIAS_VISITA','PROXIMA_VISITA','SALDO_CTA_CTE','NOTAS','USUARIO_REGISTRO','FECHA_ULTIMA_VISITA','ULTIMA_ACCION','FECHA_ALTA','ACTIVO'],obj);}
+  closeModal('modal-nuevo-cliente');renderClientes();renderFiltroLocalidades();renderDashboard();
+}
+
+// ── CARRITO ───────────────────────────────────────────────────
+function renderSelCliente(){
+  const q=(document.getElementById('search-sel-cliente').value||'').toLowerCase();
+  let list=DB.clientes;
+  if(q)list=list.filter(c=>[(c.NOMBRE_NEGOCIO||''),(c.BARRIO||'')].join(' ').toLowerCase().includes(q));
+  document.getElementById('sel-cliente-list').innerHTML=list.slice(0,25).map(c=>`<div class="cliente-row" onclick="seleccionarClienteCarrito('${c.ID}')"><div class="cliente-avatar">${(c.NOMBRE_NEGOCIO||'?')[0].toUpperCase()}</div><div class="cliente-info"><div class="cliente-name">${c.NOMBRE_NEGOCIO}</div><div class="cliente-meta">${c.BARRIO||''} · ${c.LOCALIDAD||''}</div></div></div>`).join('');
+}
+function seleccionarClienteCarrito(id){
+  carritoClienteId=id;const c=DB.clientes.find(x=>x.ID===id);
+  document.getElementById('carrito-cliente-label').textContent=c?.NOMBRE_NEGOCIO||'Cliente';
+  closeModal('modal-seleccionar-cliente');
+}
+function irACarritoConCliente(){
+  carritoClienteId=activeFichaId;const c=DB.clientes.find(x=>x.ID===activeFichaId);
+  document.getElementById('carrito-cliente-label').textContent=c?.NOMBRE_NEGOCIO||'Cliente';
+  closeModal('modal-ficha-cliente');goTab('pedido',document.querySelectorAll('.nav-item')[2]);
+}
+function renderProductSearch(){
+  const q=(document.getElementById('search-productos').value||'').toLowerCase();
+  const el=document.getElementById('product-search-results');
+  if(!q){el.innerHTML='';return;}
+  const list=DB.productos.filter(p=>[(p.NOMBRE||''),(p.CODIGO_INTERNO||''),(p.CODIGO_BARRAS||'')].join(' ').toLowerCase().includes(q)).slice(0,10);
+  if(!list.length){el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:6px 0;">Sin resultados</div>';return;}
+  el.innerHTML=list.map(p=>`<div class="product-row" onclick="agregarAlCarrito('${p.ID}')"><div style="flex:1;"><div style="font-weight:600;font-size:14px;">${p.NOMBRE}</div><div class="product-code">${p.CODIGO_INTERNO||''} ${p.CODIGO_BARRAS?'· '+p.CODIGO_BARRAS:''} · ${p.UNIDAD||'un'}</div></div><div class="product-price">$${parseFloat(p.PRECIO||0).toLocaleString('es-AR')}</div></div>`).join('');
+}
+function agregarAlCarrito(id){
+  const p=DB.productos.find(x=>x.ID===id);if(!p)return;
+  const ex=carrito.find(i=>i.producto.ID===id);
+  if(ex)ex.cantidad++;else carrito.push({producto:p,cantidad:1,descuento:0});
+  document.getElementById('search-productos').value='';document.getElementById('product-search-results').innerHTML='';
+  renderCarrito();
+}
+function renderCarrito(){
+  const el=document.getElementById('carrito-items');const empty=document.getElementById('carrito-empty');const bar=document.getElementById('cart-bar');
+  if(!carrito.length){empty.style.display='block';bar.style.display='none';return;}
+  empty.style.display='none';bar.style.display='flex';
+  let total=0;
+  el.innerHTML=carrito.map((item,i)=>{
+    const sub=item.cantidad*parseFloat(item.producto.PRECIO||0)*(1-item.descuento/100);total+=sub;
+    return`<div class="cart-item"><div class="cart-item-header"><div class="cart-item-name">${item.producto.NOMBRE}</div><button onclick="quitarDelCarrito(${i})" style="background:none;border:none;color:var(--red);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;">×</button></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:2px;">$${parseFloat(item.producto.PRECIO||0).toLocaleString('es-AR')} c/u</div>
+    <div class="cart-item-controls">
+      <div class="qty-btn" onclick="cambiarQty(${i},-1)">−</div>
+      <input class="qty-input" type="number" value="${item.cantidad}" min="0.01" step="1" onchange="setQty(${i},this.value)">
+      <div class="qty-btn" onclick="cambiarQty(${i},1)">+</div>
+      <span style="color:var(--text2);font-size:12px;">Dto.</span>
+      <input class="desc-input" type="number" value="${item.descuento}" min="0" max="100" step="1" onchange="setDesc(${i},this.value)">
+      <span style="color:var(--text2);font-size:12px;">%</span>
+      <span style="flex:1;text-align:right;font-family:var(--mono);font-weight:700;color:var(--accent);">$${sub.toLocaleString('es-AR',{maximumFractionDigits:2})}</span>
+    </div></div>`;
+  }).join('');
+  document.getElementById('cart-total').textContent='$'+total.toLocaleString('es-AR',{maximumFractionDigits:2});
+}
+function quitarDelCarrito(i){carrito.splice(i,1);renderCarrito();}
+function cambiarQty(i,d){carrito[i].cantidad=Math.max(0.01,carrito[i].cantidad+d);renderCarrito();}
+function setQty(i,v){carrito[i].cantidad=Math.max(0.01,parseFloat(v)||1);renderCarrito();}
+function setDesc(i,v){carrito[i].descuento=Math.min(100,Math.max(0,parseFloat(v)||0));renderCarrito();}
+function confirmarPedido(){
+  if(!carritoClienteId){openModal('modal-seleccionar-cliente');renderSelCliente();return;}
+  if(!carrito.length)return;
+  const c=DB.clientes.find(x=>x.ID===carritoClienteId);
+  let total=carrito.reduce((a,it)=>a+it.cantidad*parseFloat(it.producto.PRECIO||0)*(1-it.descuento/100),0);
+  document.getElementById('confirm-resumen').innerHTML=`<div class="card" style="margin-bottom:10px;"><div style="font-weight:700;margin-bottom:8px;">${c?.NOMBRE_NEGOCIO}</div>${carrito.map(it=>`<div class="ficha-row"><span class="ficha-key">${it.producto.NOMBRE} ×${it.cantidad}${it.descuento?' (−'+it.descuento+'%)':''}</span><span style="font-family:var(--mono);font-size:13px;">$${(it.cantidad*parseFloat(it.producto.PRECIO||0)*(1-it.descuento/100)).toLocaleString('es-AR',{maximumFractionDigits:2})}</span></div>`).join('')}<div class="ficha-row" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;"><span style="font-weight:700;">TOTAL</span><span style="font-family:var(--mono);font-weight:700;color:var(--accent);font-size:18px;">$${total.toLocaleString('es-AR',{maximumFractionDigits:2})}</span></div></div>`;
+  openModal('modal-confirmar-pedido');
+}
+async function guardarPedido(){
+  const c=DB.clientes.find(x=>x.ID===carritoClienteId);
+  const total=carrito.reduce((a,it)=>a+it.cantidad*parseFloat(it.producto.PRECIO||0)*(1-it.descuento/100),0);
+  const pid='P'+Date.now();const rem='R'+Date.now();
+  const pedido={ID:pid,NUMERO_REMITO:rem,ID_CLIENTE:carritoClienteId,NOMBRE_CLIENTE:c?.NOMBRE_NEGOCIO||'',
+    FECHA:today(),ESTADO:'TOMADO',TOTAL:total.toFixed(2),DESCUENTO_TOTAL:'0',
+    NOTAS:document.getElementById('pedido-notas').value,USUARIO:currentUser.NOMBRE,
+    FECHA_ARMADO:'',FECHA_ENTREGA:'',FECHA_COBRO:''};
+  const items=carrito.map((it,i)=>({ID:pid+'_'+i,ID_PEDIDO:pid,ID_PRODUCTO:it.producto.ID,
+    NOMBRE_PRODUCTO:it.producto.NOMBRE,CANTIDAD:it.cantidad.toString(),PRECIO_UNITARIO:it.producto.PRECIO,
+    DESCUENTO_PCT:it.descuento.toString(),SUBTOTAL:(it.cantidad*parseFloat(it.producto.PRECIO||0)*(1-it.descuento/100)).toFixed(2)}));
+  DB.pedidos.push(pedido);items.forEach(it=>DB.pedidoItems.push(it));
+  await idbPut('pedidos',pedido);await idbPutAll('pedidoItems',items);
+  if(gapi_token){
+    await pushRow('PEDIDOS',['ID','NUMERO_REMITO','ID_CLIENTE','NOMBRE_CLIENTE','FECHA','ESTADO','TOTAL','DESCUENTO_TOTAL','NOTAS','USUARIO','FECHA_ARMADO','FECHA_ENTREGA','FECHA_COBRO'],pedido);
+    for(const it of items)await pushRow('PEDIDO_ITEMS',['ID','ID_PEDIDO','ID_PRODUCTO','NOMBRE_PRODUCTO','CANTIDAD','PRECIO_UNITARIO','DESCUENTO_PCT','SUBTOTAL'],it);
+  }
+  closeModal('modal-confirmar-pedido');
+  carrito=[];carritoClienteId=null;
+  document.getElementById('carrito-cliente-label').textContent='Seleccionar cliente';
+  document.getElementById('pedido-notas').value='';
+  renderCarrito();renderPedidos();renderDashboard();
+  activePedidoId=pid;goTab('pedidos',document.querySelectorAll('.nav-item')[3]);
+  setTimeout(()=>abrirDetallePedido(pid),200);
+}
+
+// ── PEDIDOS ───────────────────────────────────────────────────
+function setFiltroPedido(el){
+  document.querySelectorAll('#filtro-pedidos .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');filtroPedidoActivo=el.dataset.estado;renderPedidos();
+}
+function renderPedidos(){
+  let list=[...DB.pedidos].reverse();
+  if(filtroPedidoActivo!=='TODOS')list=list.filter(p=>p.ESTADO===filtroPedidoActivo);
+  const el=document.getElementById('lista-pedidos');
+  if(!list.length){el.innerHTML='<div class="empty"><p>Sin pedidos</p></div>';return;}
+  el.innerHTML=list.map(p=>`<div class="pedido-row" onclick="abrirDetallePedido('${p.ID}')"><div class="pedido-header"><span class="pedido-cliente">${p.NOMBRE_CLIENTE}</span>${badgeEstado(p.ESTADO)}</div><div class="pedido-meta">${p.FECHA} · ${p.USUARIO}</div><div class="pedido-footer"><span class="pedido-meta">${p.NOTAS||'Remito: '+p.NUMERO_REMITO}</span><span class="pedido-total">$${parseFloat(p.TOTAL||0).toLocaleString('es-AR')}</span></div></div>`).join('');
+}
+function verPedidosCliente(){
+  closeModal('modal-ficha-cliente');goTab('pedidos',document.querySelectorAll('.nav-item')[3]);
+  setTimeout(()=>{
+    const el=document.getElementById('lista-pedidos');
+    const list=DB.pedidos.filter(p=>p.ID_CLIENTE===activeFichaId).reverse();
+    el.innerHTML=list.length?list.map(p=>`<div class="pedido-row" onclick="abrirDetallePedido('${p.ID}')"><div class="pedido-header"><span class="pedido-cliente">${p.NOMBRE_CLIENTE}</span>${badgeEstado(p.ESTADO)}</div><div class="pedido-footer"><span class="pedido-meta">${p.FECHA}</span><span class="pedido-total">$${parseFloat(p.TOTAL||0).toLocaleString('es-AR')}</span></div></div>`).join(''):'<div class="empty"><p>Sin pedidos</p></div>';
+  },100);
+}
+function abrirDetallePedido(id){
+  const p=DB.pedidos.find(x=>x.ID===id);if(!p)return;activePedidoId=id;
+  const items=DB.pedidoItems.filter(i=>i.ID_PEDIDO===id);
+  document.getElementById('detalle-pedido-titulo').textContent=p.NOMBRE_CLIENTE;
+  document.getElementById('detalle-pedido-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">${badgeEstado(p.ESTADO)}<span style="font-size:12px;color:var(--text2);">${p.FECHA} · ${p.USUARIO}</span></div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">Remito: ${p.NUMERO_REMITO}</div>
+    ${items.map(it=>`<div class="ficha-row"><span class="ficha-key">${it.NOMBRE_PRODUCTO} ×${it.CANTIDAD}${parseFloat(it.DESCUENTO_PCT||0)>0?' (−'+it.DESCUENTO_PCT+'%)':''}</span><span style="font-family:var(--mono);font-size:13px;">$${parseFloat(it.SUBTOTAL||0).toLocaleString('es-AR')}</span></div>`).join('')}
+    <div class="ficha-row" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;"><span style="font-weight:700;">TOTAL</span><span style="font-family:var(--mono);font-weight:700;color:var(--accent);font-size:18px;">$${parseFloat(p.TOTAL||0).toLocaleString('es-AR')}</span></div>
+    ${p.NOTAS?`<div style="margin-top:8px;font-size:13px;color:var(--text2);">📝 ${p.NOTAS}</div>`:''}
+  `;
+  const acc=siguientesAcciones(p.ESTADO);
+  document.getElementById('detalle-pedido-acciones').innerHTML=acc.map(a=>`<button class="btn ${a.cls}" onclick="${a.fn}">${a.label}</button>`).join('')+`<button class="btn btn-secondary" onclick="imprimirRemito('${id}')">🖨️ Imprimir</button>`;
+  openModal('modal-detalle-pedido');
+}
+function siguientesAcciones(e){
+  const m={'TOMADO':[{label:'✅ Marcar armado',cls:'btn-primary',fn:"avanzarEstado('ARMADO')"}],'ARMADO':[{label:'🚚 En entrega',cls:'btn-primary',fn:"avanzarEstado('EN_ENTREGA')"}],'EN_ENTREGA':[{label:'📦 Entregado',cls:'btn-primary',fn:"avanzarEstado('ENTREGADO')"}],'ENTREGADO':[{label:'💰 Cobrar',cls:'btn-green',fn:"avanzarEstado('COBRADO')"}],'COBRADO':[]};
+  return m[e]||[];
+}
+async function avanzarEstado(nuevo){
+  const p=DB.pedidos.find(x=>x.ID===activePedidoId);if(!p)return;
+  const mapa={'ARMADO':'FECHA_ARMADO','ENTREGADO':'FECHA_ENTREGA','COBRADO':'FECHA_COBRO'};
+  p.ESTADO=nuevo;if(mapa[nuevo])p[mapa[nuevo]]=today();
+  await idbPut('pedidos',p);await updatePedidoInSheet(p);
+  closeModal('modal-detalle-pedido');renderPedidos();renderDashboard();
+}
+
+// ── VISITAS ───────────────────────────────────────────────────
+function registrarVisita(){closeModal('modal-ficha-cliente');document.getElementById('visita-proxima').value='';document.getElementById('visita-notas').value='';openModal('modal-visita');}
+async function guardarVisita(){
+  const id='V'+Date.now();const c=DB.clientes.find(x=>x.ID===activeFichaId);
+  const prox=document.getElementById('visita-proxima').value;
+  const obj={ID:id,ID_CLIENTE:activeFichaId,NOMBRE_CLIENTE:c?.NOMBRE_NEGOCIO||'',FECHA:today(),
+    ACCION:document.getElementById('visita-accion').value,RESULTADO:document.getElementById('visita-resultado').value,
+    NOTAS:document.getElementById('visita-notas').value,USUARIO:currentUser.NOMBRE};
+  DB.visitas.push(obj);await idbPut('visitas',obj);
+  if(c){c.FECHA_ULTIMA_VISITA=today();c.ULTIMA_ACCION=obj.ACCION;if(prox)c.PROXIMA_VISITA=prox;await idbPut('clientes',c);}
+  if(gapi_token)await pushRow('VISITAS',['ID','ID_CLIENTE','NOMBRE_CLIENTE','FECHA','ACCION','RESULTADO','NOTAS','USUARIO'],obj);
+  closeModal('modal-visita');renderDashboard();
+}
+
+// ── COBROS ────────────────────────────────────────────────────
+function registrarCobro(){
+  cobroClienteId=activeFichaId;const c=DB.clientes.find(x=>x.ID===activeFichaId);
+  const saldo=parseFloat(c?.SALDO_CTA_CTE||0);
+  document.getElementById('cobro-cliente-info').innerHTML=`<strong>${c?.NOMBRE_NEGOCIO}</strong> · Saldo: <span class="${saldo>0?'saldo-pos':'saldo-zero'}">$${saldo.toLocaleString('es-AR')}</span>`;
+  document.getElementById('cobro-monto').value=saldo>0?saldo:'';
+  closeModal('modal-ficha-cliente');openModal('modal-cobro');
+}
+function selMedio(el,m){document.querySelectorAll('.medio-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');medioCobroSelected=m;}
+async function guardarCobro(){
+  const monto=parseFloat(document.getElementById('cobro-monto').value||0);if(!monto){alert('Ingresá un monto');return;}
+  const c=DB.clientes.find(x=>x.ID===cobroClienteId);
+  const obj={ID:'CO'+Date.now(),ID_PEDIDO:'',ID_CLIENTE:cobroClienteId,NOMBRE_CLIENTE:c?.NOMBRE_NEGOCIO||'',
+    FECHA:today(),MONTO:monto.toString(),MEDIO_PAGO:medioCobroSelected,
+    NOTAS:document.getElementById('cobro-notas').value,USUARIO:currentUser.NOMBRE};
+  DB.cobros.push(obj);await idbPut('cobros',obj);
+  if(c){c.SALDO_CTA_CTE=(parseFloat(c.SALDO_CTA_CTE||0)-monto).toString();await idbPut('clientes',c);}
+  if(gapi_token)await pushRow('COBROS',['ID','ID_PEDIDO','ID_CLIENTE','NOMBRE_CLIENTE','FECHA','MONTO','MEDIO_PAGO','NOTAS','USUARIO'],obj);
+  closeModal('modal-cobro');renderDashboard();renderClientes();
+}
+
+// ── USUARIOS ──────────────────────────────────────────────────
+function renderUsuarios(){
+  const el=document.getElementById('lista-usuarios');
+  el.innerHTML=DB.usuarios.length?DB.usuarios.map(u=>`<div class="config-item"><div><div class="config-label">${u.NOMBRE}</div><div class="config-sub">${u.ROL}</div></div><span class="badge ${u.ACTIVO==='SI'?'badge-armado':'badge-tomado'}">${u.ACTIVO==='SI'?'Activo':'Inact.'}</span></div>`).join(''):'<div style="color:var(--text2);font-size:13px;">Sin usuarios locales</div>';
+}
+async function guardarUsuario(){
+  const nombre=document.getElementById('nu-nombre').value.trim();const pass=document.getElementById('nu-pass').value;
+  if(!nombre||!pass){alert('Completá todos los campos');return;}
+  const obj={ID:'U'+Date.now(),NOMBRE:nombre,PASSWORD_HASH:hashPass(pass),ROL:document.getElementById('nu-rol').value,ACTIVO:'SI'};
+  DB.usuarios.push(obj);await idbPut('usuarios',obj);
+  if(gapi_token)await pushRow('USUARIOS',['ID','NOMBRE','PASSWORD_HASH','ROL','ACTIVO'],obj);
+  closeModal('modal-nuevo-usuario');document.getElementById('nu-nombre').value='';document.getElementById('nu-pass').value='';renderUsuarios();
+}
+
+// ── CSV IMPORT ────────────────────────────────────────────────
+function importCSV(event,tipo){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
+    const rows=lines.slice(1).map((line,ri)=>{
+      const vals=line.split(',').map(v=>v.trim().replace(/"/g,''));
+      const obj={ID:'IMP'+Date.now()+ri};
+      headers.forEach((h,i)=>obj[h]=vals[i]||'');
+      if(obj.CODIGO)obj.ID=obj.CODIGO;
+      else if(obj.CODIGO_INTERNO)obj.ID=obj.CODIGO_INTERNO;
+      return obj;
+    }).filter(o=>Object.values(o).some(v=>v&&v!==o.ID));
+    if(tipo==='clientes'){
+      rows.forEach(r=>{if(!r.SALDO_CTA_CTE)r.SALDO_CTA_CTE='0';if(!r.ACTIVO)r.ACTIVO='SI';if(!r.ES_CLIENTE)r.ES_CLIENTE='SI';if(!r.FECHA_ALTA)r.FECHA_ALTA=today();});
+      await idbPutAll('clientes',rows);DB.clientes=[...DB.clientes,...rows];
+      renderClientes();renderFiltroLocalidades();alert('✅ '+rows.length+' clientes importados');
+    }else if(tipo==='productos'){
+      rows.forEach(r=>{if(!r.ACTIVO)r.ACTIVO='SI';});
+      await idbPutAll('productos',rows);DB.productos=[...DB.productos,...rows];
+      alert('✅ '+rows.length+' productos importados');
+    }
+    renderDashboard();event.target.value='';
+  };reader.readAsText(file);
+}
+
+// ── REMITO ────────────────────────────────────────────────────
+function imprimirRemito(pedidoId){
+  const p=DB.pedidos.find(x=>x.ID===pedidoId);if(!p)return;
+  const c=DB.clientes.find(x=>x.ID===p.ID_CLIENTE);
+  const items=DB.pedidoItems.filter(i=>i.ID_PEDIDO===pedidoId);
+  const el=document.getElementById('remito-print');el.style.display='block';
+  el.innerHTML=`<div style="border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:14px;"><h2 style="font-size:20px;margin-bottom:4px;">DISTRE — REMITO</h2><div>N°: <strong>${p.NUMERO_REMITO}</strong> &nbsp; Fecha: <strong>${p.FECHA}</strong></div></div>
+  <table class="remito-table"><tbody><tr><td><strong>Cliente</strong></td><td colspan="4">${p.NOMBRE_CLIENTE}</td></tr><tr><td><strong>Dirección</strong></td><td colspan="4">${c?.DIRECCION||'–'} · ${c?.LOCALIDAD||''}</td></tr><tr><td><strong>Vendedor</strong></td><td colspan="4">${p.USUARIO}</td></tr></tbody></table>
+  <table class="remito-table"><thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Dto%</th><th>Subtotal</th></tr></thead><tbody>${items.map(it=>`<tr><td>${it.NOMBRE_PRODUCTO}</td><td style="text-align:center;">${it.CANTIDAD}</td><td style="text-align:right;">$${parseFloat(it.PRECIO_UNITARIO||0).toLocaleString('es-AR')}</td><td style="text-align:center;">${it.DESCUENTO_PCT||0}%</td><td style="text-align:right;">$${parseFloat(it.SUBTOTAL||0).toLocaleString('es-AR')}</td></tr>`).join('')}</tbody></table>
+  <div style="font-size:18px;font-weight:bold;text-align:right;margin-top:10px;">TOTAL: $${parseFloat(p.TOTAL||0).toLocaleString('es-AR')}</div>
+  ${p.NOTAS?`<div style="margin-top:10px;font-size:13px;">Notas: ${p.NOTAS}</div>`:''}
+  <div style="margin-top:24px;font-size:12px;">Recibí conforme: _______________________</div>`;
+  setTimeout(()=>{window.print();el.style.display='none';},300);
+  closeModal('modal-detalle-pedido');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function today(){return new Date().toLocaleDateString('es-AR');}
+function badgeEstado(e){const m={'TOMADO':['badge-tomado','🟡 Tomado'],'ARMADO':['badge-armado','🔵 Armado'],'EN_ENTREGA':['badge-entrega','🟠 En entrega'],'ENTREGADO':['badge-entregado','✅ Entregado'],'COBRADO':['badge-cobrado','💚 Cobrado']};const[cls,lbl]=m[e]||['badge-tomado',e];return`<span class="badge ${cls}">${lbl}</span>`;}
+
+// ── BOOT ─────────────────────────────────────────────────────
+(async()=>{
+  await openIDB();await loadFromIDB();
+  const saved=localStorage.getItem('distre_user');
+  if(saved){try{currentUser=JSON.parse(saved);initApp();}catch{localStorage.removeItem('distre_user');}}
+})();
+</script>
+</body>
+</html>
